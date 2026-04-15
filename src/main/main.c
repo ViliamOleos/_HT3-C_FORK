@@ -6,6 +6,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+	#ifdef COMP_WINDOWS
+#include <windows.h>
+	#endif
+
 /// #define TOKENNAME_DEBUG /// uncomment for token names
 
 #include "../lexer/lexer.h"
@@ -15,17 +19,31 @@
 
 /// === colour console ================
 
+			#ifdef COMP_WINDOWS
+#define CC_ENABLECOLOURCONSOLE() \
+	do { \
+		HANDLE console; DWORD consoleState; \
+	 	\
+		console = GetStdHandle(STD_OUTPUT_HANDLE); \
+	 	\
+		GetConsoleMode(console, &consoleState); \
+		consoleState |= ENABLE_VIRTUAL_TERMINAL_PROCESSING; \
+		SetConsoleMode(console, consoleState); \
+	} while(0)
+			#else
+#define CC_ENABLECOLOURCONSOLE() /* no action */
+			#endif
+
 #define RED     "\033[1;31m"
 #define RESET   "\033[0m"
 
 /// === print error ===================
 
-/// perrors the given message in this template: "error: <urmsg> \n", colouring "error:"
-#define ERR(msg) perror(RED "error: " RESET msg "\n")
+/// prints the given message in this template: "error: <urmsg> \n", colouring "error:"
+#define ERR(msg) printf(RED "error: " RESET msg "\n")
 
 /// ==================================== [ FUNC ] ==================================== ///
 
-/// returns a pointer
 char* readFile(const char *path) {
     FILE *fp = fopen(path, "r");
     if(!fp) {
@@ -54,9 +72,13 @@ char* readFile(const char *path) {
 /// ==================================== [ MAIN ] ==================================== ///
 
 int main(int argc, char* argv[]) {
+
+		CC_ENABLECOLOURCONSOLE();
+
 	/// === file checks ===================
 
-    if(argc<2) { /// if there are at least 2 arguments
+	/// 1 - exec call; 2 - file
+    if(argc<2) { 
 		ERR("Expected a source file.");
         return 1;
     }
@@ -83,7 +105,6 @@ int main(int argc, char* argv[]) {
 
 	/// === exfiltration ==================
 
-    free(tokenStream);
     return(0);
 
 	/// ===================================
