@@ -37,6 +37,11 @@ bool iskeyw(char text[]) {
     return in(keywords, keyword_len, text);
 }
 
+#if 0
+Token* lexer(char* code, size_t codesiz) {
+
+}
+#else
 Token* lexer(char* code) {
     size_t len = strlen(code);
     Token* result = malloc(sizeof(Token));
@@ -198,3 +203,4 @@ Token* lexer(char* code) {
 
     return result;
 }
+#endif

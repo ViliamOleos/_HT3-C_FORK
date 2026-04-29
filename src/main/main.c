@@ -44,7 +44,7 @@
 
 /// ==================================== [ FUNC ] ==================================== ///
 
-char* readFile(const char *path) {
+char* readFile(const char *path, size_t* bytesread) {
     FILE *fp = fopen(path, "r");
     if(!fp) {
 		ERR("File opening failed.");
@@ -66,12 +66,15 @@ char* readFile(const char *path) {
     buffer[read_size] = '\0';
 
     fclose(fp);
+
+	*bytesread = read_size;
     return buffer;
 }
 
 /// ==================================== [ MAIN ] ==================================== ///
 
 int main(int argc, char* argv[]) {
+	size_t charread;
 
 		CC_ENABLECOLOURCONSOLE();
 
@@ -91,7 +94,7 @@ int main(int argc, char* argv[]) {
 
 	/// === main ==========================
     
-    char* content = readFile(argv[1]);
+    char* content = readFile(argv[1], &charread); printf("%llu bytes read.\n", charread);
     Token* tokenStream = lexer(content);
 	free(content); /// content is presumably never used after this, so i recommend freeing
 
@@ -112,8 +115,6 @@ int main(int argc, char* argv[]) {
 
 /// ==================================== [ NOTE ] ==================================== ///
 #if 0
-
-I might wanna talk about not doing the args at the top
 
 #endif
 /// ================================================================================== ///
