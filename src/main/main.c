@@ -34,41 +34,42 @@
 #define CC_ENABLECOLOURCONSOLE() /* no action */
 			#endif
 
-#define RED     "\033[1;31m"
-#define RESET   "\033[0m"
+#define RED   "\033[1;31m"
+#define RESET "\033[0m"
 
 /// === print error ===================
 
-/// prints the given message in this template: "error: <urmsg> \n", colouring "error:"
-#define ERR(msg) printf(RED "error: " RESET msg "\n")
+#define ERR(msg, ...) printf(RED "error: " RESET msg "\n", __VA_ARGS__)
 
 /// ==================================== [ FUNC ] ==================================== ///
 
-char* readFile(const char *path, size_t* bytesread) {
-    FILE *fp = fopen(path, "r");
-    if(!fp) {
-		ERR("File opening failed.");
-        return NULL;
-    }
+char* readFile(const char *path, size_t* filebytes) {
+	FILE* fp; long size;
+	char* buf = NULL;
+
+    if(!(fp=fopen(path, "r"))) { ERR("File opening failed. Does it exist?"); goto exfiltration; }
 
     fseek(fp, 0, SEEK_END);
-    long size = ftell(fp);
+    	size = ftell(fp);
     rewind(fp);
 
-    char *buffer = malloc(size + 1);
-    if(!buffer) {
-		ERR("Memory allocation failed.");
-        fclose(fp);
-        return NULL;
-    }
+    if(!(buf=malloc(size+1))) { ERR("Allocating memory for file failed. Is it too big?"); goto exfiltration; }
 
-    size_t read_size = fread(buffer, 1, size, fp);
-    buffer[read_size] = '\0';
+    fread(buf, 1, size, fp); 
+
+	if(fread(buf,1,size,fp)<size) { ERR("Read less file bytes than expected. Unknown error."); goto exfiltration; } /// tip for debugging: check errno
+
+	buf[size]='\0';
+
+	*filebytes=size;
+
+exfiltration:
 
     fclose(fp);
 
-	*bytesread = read_size;
-    return buffer;
+half_exfiltration:
+
+    return(buf);
 }
 
 /// ==================================== [ MAIN ] ==================================== ///
